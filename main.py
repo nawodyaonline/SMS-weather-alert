@@ -1,6 +1,9 @@
 import requests
+from twilio.rest import Client
 from decouple import config
 
+account_sid = config('TWILIO_ACCOUNT_SID')
+auth_token = config('TWILIO_AUTH_TOKEN')
 
 LAT = '7.4315422064317636'
 LON = '80.71661806492484'
@@ -18,17 +21,27 @@ response = requests.get(url, params=para)
 response.raise_for_status()
 weather_data = response.json()
 
-hours = weather_data['hourly']
+sliced_hours = weather_data['hourly'][:12]
 
 bring_umbrella = False
 
-for i in range(12):
-    hour = hours[i]
+for hour in sliced_hours:
     id = hour['weather'][0]['id']
     if id < 700:
         bring_umbrella = True
 
 if bring_umbrella:
-    print("Bring an umbrella.")
+    client = Client(account_sid, auth_token)
+
+    message = client.messages \
+                .create(
+                    body="It's going to rain today. Remember to bring an ☔",
+                    from_='+12016465598',
+                    to='+94779802204'
+                )
+    print(message.status)
+
+
+
 
 # print(weather_data)
